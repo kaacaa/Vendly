@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "393485759163",
+    "project_id": "vendly-7b5ba",
+    "storage_bucket": "vendly-7b5ba.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:393485759163:android:832e2040f92cdedc10af9e",
+        "android_client_info": {
+          "package_name": "com.katarina.vendly"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCLE3-5sipHX5x9RzPFIvjqeZTTZdKxvkU"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
