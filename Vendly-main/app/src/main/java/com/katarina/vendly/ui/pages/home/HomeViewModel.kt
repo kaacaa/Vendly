@@ -43,7 +43,6 @@ class HomeViewModel : ViewModel() {
             .orderBy("createdAt", Query.Direction.DESCENDING)
             .addSnapshotListener { snap, e ->
                 if (e != null) {
-                    // Surface the exact message (e.g., "Missing or insufficient permissions.")
                     _ui.value = _ui.value.copy(isLoading = false, error = e.message)
                     return@addSnapshotListener
                 }

@@ -15,6 +15,7 @@ import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 
@@ -22,15 +23,12 @@ import androidx.compose.ui.unit.dp
 fun FilterDialog(
     productType: String,
     status: String,
-
-    // ✅ Made optional
-    updatedAfter: String = "",
-    updatedBefore: String = "",
-    onUpdatedAfterChange: (String) -> Unit = {},
-    onUpdatedBeforeChange: (String) -> Unit = {},
-
+    updatedAfter: String,          // yyyy-MM-dd
+    updatedBefore: String,         // yyyy-MM-dd
     onProductTypeChange: (String) -> Unit,
     onStatusChange: (String) -> Unit,
+    onUpdatedAfterChange: (String) -> Unit,
+    onUpdatedBeforeChange: (String) -> Unit,
     isFiltering: Boolean,
     onClear: () -> Unit,
     onApply: () -> Unit,
@@ -60,31 +58,34 @@ fun FilterDialog(
                     StatusRadio("low", "Low", status, onStatusChange)
                 }
 
-                // ✅ Only show date filters if the screen that calls it provides callbacks
-                if (onUpdatedAfterChange !== {} || onUpdatedBeforeChange !== {}) {
-                    Text("Last changed (yyyy-MM-dd)")
-                    Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                        OutlinedTextField(
-                            value = updatedAfter,
-                            onValueChange = onUpdatedAfterChange,
-                            label = { Text("Updated after") },
-                            singleLine = true,
-                            modifier = Modifier.weight(1f)
-                        )
-                        OutlinedTextField(
-                            value = updatedBefore,
-                            onValueChange = onUpdatedBeforeChange,
-                            label = { Text("Updated before") },
-                            singleLine = true,
-                            modifier = Modifier.weight(1f)
-                        )
-                    }
+                // Date filters
+                Text("Last changed (yyyy-MM-dd)")
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    OutlinedTextField(
+                        value = updatedAfter,
+                        onValueChange = onUpdatedAfterChange,
+                        label = { Text("Updated after") },
+                        singleLine = true,
+                        modifier = Modifier.weight(1f)
+                    )
+                    OutlinedTextField(
+                        value = updatedBefore,
+                        onValueChange = onUpdatedBeforeChange,
+                        label = { Text("Updated before") },
+                        singleLine = true,
+                        modifier = Modifier.weight(1f)
+                    )
                 }
             }
         },
         confirmButton = {
             Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                TextButton(onClick = onClear, enabled = !isFiltering) { Text("Clear") }
+                TextButton(onClick = onClear, enabled = !isFiltering) {
+                    Text("Clear")
+                }
                 Button(onClick = onApply, enabled = !isFiltering) {
                     if (isFiltering) {
                         CircularProgressIndicator(
@@ -99,7 +100,9 @@ fun FilterDialog(
             }
         },
         dismissButton = {
-            TextButton(onClick = onDismiss, enabled = !isFiltering) { Text("Close") }
+            TextButton(onClick = onDismiss, enabled = !isFiltering) {
+                Text("Close")
+            }
         }
     )
 }
@@ -111,8 +114,11 @@ private fun StatusRadio(
     selectedStatus: String,
     onStatusChange: (String) -> Unit
 ) {
-    Row(verticalAlignment = androidx.compose.ui.Alignment.CenterVertically) {
-        RadioButton(selected = selectedStatus == value, onClick = { onStatusChange(value) })
+    Row(verticalAlignment = Alignment.CenterVertically) {
+        RadioButton(
+            selected = selectedStatus == value,
+            onClick = { onStatusChange(value) }
+        )
         Spacer(Modifier.width(6.dp))
         Text(label)
     }

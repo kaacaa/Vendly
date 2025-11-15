@@ -34,7 +34,6 @@ class NotificationHelper(private val context: Context) {
         }
     }
 
-    /** Simple info notification, no deep navigation. */
     @SuppressLint("MissingPermission")
     fun showSimpleNotification(
         title: String,
@@ -53,7 +52,6 @@ class NotificationHelper(private val context: Context) {
         }
     }
 
-    /** Opens the app and navigates to the vending details using an extra. */
     @SuppressLint("MissingPermission")
     fun showVendingNotification(
         vendingId: String,
@@ -87,7 +85,6 @@ class NotificationHelper(private val context: Context) {
     }
 
     private fun safeSmallIcon(): Int {
-        // Use your own small icon; fallback prevents crashes if ic_notification is missing.
         return try { R.drawable.ic_launcher_background } catch (_: Exception) { R.drawable.ic_launcher_foreground }
     }
 }

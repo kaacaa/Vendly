@@ -12,7 +12,6 @@ private const val COLLECTION = "vending"
 class VendingRepository(
     private val db: FirebaseFirestore = FirebaseFirestore.getInstance()
 ) {
-    /** Accepts Firestore field value and normalizes to epoch millis. */
     private fun readMillis(value: Any?): Long {
         return when (value) {
             is Number -> value.toLong()
@@ -92,7 +91,7 @@ class VendingRepository(
                 mapOf(
                     "status" to canonical,
                     "updatedAt" to System.currentTimeMillis(),
-                    "lastUpdatedBy" to actorUid // allowed by rules below
+                    "lastUpdatedBy" to actorUid
                 ),
                 SetOptions.merge()
             )

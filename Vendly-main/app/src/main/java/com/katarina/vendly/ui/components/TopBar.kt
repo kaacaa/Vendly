@@ -24,6 +24,7 @@ fun BrandTopBar(
         navigationIcon = {
             if (showBack && onBack != null) {
                 IconButton(onClick = onBack) {
+                    //opciono dugme za nazad kada dodajemo automate
                     Icon(
                         imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                         contentDescription = "Back"

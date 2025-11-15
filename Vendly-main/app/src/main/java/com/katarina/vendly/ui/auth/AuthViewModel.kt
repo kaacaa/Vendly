@@ -13,11 +13,14 @@ class AuthViewModel : ViewModel() {
 
     private var auth: FirebaseAuth = Firebase.auth
 
+    //promenljiva ko amoze da se menja
     private val _authState = MutableLiveData<AuthState>(AuthState.Loading)
+    //javna verzija samo za posmatranje
     val authState: LiveData<AuthState> = _authState
 
     private val userRepository = com.katarina.vendly.data.user.UserRepository()
 
+    //proverava da li je korisnik prijavljen
     init {
         _authState.value = if (auth.currentUser == null) {
             AuthState.Unauthenticated
@@ -32,6 +35,7 @@ class AuthViewModel : ViewModel() {
             return
         }
 
+        //firebase proverava email i password, ako su tacni prijavljuje, ako nisu vraca gresku
         _authState.postValue(AuthState.Loading)
         auth.signInWithEmailAndPassword(email, password)
             .addOnCompleteListener { task ->
@@ -57,9 +61,11 @@ class AuthViewModel : ViewModel() {
             return
         }
 
+        //kreiramo novog korisnika u firebase
         _authState.postValue(AuthState.Loading)
         auth.createUserWithEmailAndPassword(email, password)
             .addOnCompleteListener { task ->
+                //provera da li je kreiranje naloga uspelo, ako nije vraca gresku
                 if (!task.isSuccessful) {
                     _authState.postValue(
                         AuthState.Error(task.exception?.message ?: "Something went wrong")
@@ -67,12 +73,14 @@ class AuthViewModel : ViewModel() {
                     return@addOnCompleteListener
                 }
 
+                //svaki korisnik ima svoj uid koji se koristi za cuvanje podataka
                 val uid = auth.currentUser?.uid
                 if (uid == null) {
                     _authState.postValue(AuthState.Error("No UID found"))
                     return@addOnCompleteListener
                 }
 
+                //pripremamo podatke za firestore
                 val db = com.google.firebase.firestore.FirebaseFirestore.getInstance()
                 val userMap = hashMapOf(
                     "uid" to uid,
@@ -82,6 +90,7 @@ class AuthViewModel : ViewModel() {
                     "profileImageUrl" to profileImageUrl
                 )
 
+                //cuvamo podatke u firestore
                 db.collection("users")
                     .document(uid)
                     .set(userMap)
@@ -96,7 +105,7 @@ class AuthViewModel : ViewModel() {
         viewModelScope.launch {
             val uid = auth.currentUser?.uid
             if (uid != null) {
-                userRepository.clearUserLocation(uid)
+                userRepository.clearUserLocation(uid) //brisemo lokaciju kada se odjavljujemo
             }
             auth.signOut()
             _authState.value = AuthState.Unauthenticated

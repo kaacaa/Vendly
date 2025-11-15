@@ -12,8 +12,8 @@ import kotlinx.coroutines.launch
 
 class AddVendingViewModel : ViewModel() {
 
-    private val _ui = MutableStateFlow(AddVendingUiState())
-    val ui: StateFlow<AddVendingUiState> = _ui
+    private val _ui = MutableStateFlow(AddVendingUiState())  //drzi trenutno stanje ekrana
+    val ui: StateFlow<AddVendingUiState> = _ui  //prikazuje stanja
 
     fun onNameChanged(v: String)        = _ui.update { it.copy(name = v, error = null) }
     fun onProductTypeChanged(v: String) = _ui.update { it.copy(productType = v, error = null) }
@@ -36,7 +36,7 @@ class AddVendingViewModel : ViewModel() {
                 context = context,
                 name = s.name.trim(),
                 productType = s.productType.trim(),
-                status = statusCode, // canonical code
+                status = statusCode,
                 imageUri = s.photo!!
             )
 

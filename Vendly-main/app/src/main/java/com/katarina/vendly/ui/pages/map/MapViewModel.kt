@@ -146,7 +146,6 @@ class MapViewModel(application: Application) : AndroidViewModel(application) {
         _uiState.update { it.copy(selectedVending = null) }
     }
 
-    /** Create + award (actor = current user). Call from a coroutine (e.g., viewModelScope.launch). */
     suspend fun createVendingMachine(
         context: Context,
         name: String,
@@ -157,12 +156,10 @@ class MapViewModel(application: Application) : AndroidViewModel(application) {
         val uid = auth.currentUser?.uid ?: return Result.failure(IllegalStateException("Not logged in"))
 
         return try {
-            // 1) Upload photo
             val imageUrl = uploader(context, imageUri).getOrElse { t ->
                 return Result.failure(IllegalStateException("Upload failed: ${t.message ?: "unknown error"}"))
             }
 
-            // 2) Build vending doc; rules require owner == caller uid
             val lat = uiState.value.latitude ?: 0.0
             val lng = uiState.value.longitude ?: 0.0
 
@@ -179,13 +176,10 @@ class MapViewModel(application: Application) : AndroidViewModel(application) {
                 updatedAt = 0L
             )
 
-            // 3) Write vending
             val id = vendingRepository.addMachine(machine)
 
-            // 4) Award ACTOR
             userRepository.awardPointsForNewVendingMachine(uid)
 
-            // 5) Refresh local list
             fetchVendingMachines()
 
             Result.success(id)
@@ -194,7 +188,6 @@ class MapViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
-    /** Status update + award (actor = current user). Call from a coroutine. */
     suspend fun updateVendingStatus(
         vendingId: String,
         newStatus: String
@@ -203,7 +196,6 @@ class MapViewModel(application: Application) : AndroidViewModel(application) {
         return try {
             vendingRepository.updateStatus(vendingId, newStatus, actorUid = uid)
             userRepository.awardPointsForStatusUpdate(uid)
-            // optional: update selected vending locally
             _uiState.update { state ->
                 val updated = state.vendingMachines.map {
                     if (it.id == vendingId) it.copy(status = VendingStatus.normalize(newStatus)) else it

@@ -1,5 +1,7 @@
 package com.katarina.vendly.ui.filters
 
+import android.os.Build
+import androidx.annotation.RequiresApi
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.katarina.vendly.data.vending.VendingRepository
@@ -19,8 +21,8 @@ class FilterViewModel(
     private val _ui = MutableStateFlow(FiltersUiState())
     val ui: StateFlow<FiltersUiState> = _ui
 
-    /** Load full list once (or call again to refresh) */
-    fun loadAll(updatedAfter: Long = 0L) {
+    @RequiresApi(Build.VERSION_CODES.O)
+    fun loadAll() {
         viewModelScope.launch {
             _ui.update { it.copy(isFiltering = true, error = null) }
             try {
@@ -51,25 +53,28 @@ class FilterViewModel(
         }
     }
 
-    /** Re-fetch from repo (optional). If you only want local re-filter, call reFilter(). */
-    fun refresh(updatedAfter: Long = 0L) = loadAll()
+    @RequiresApi(Build.VERSION_CODES.O)
+    fun refresh() = loadAll()
 
-    // ---------------- setters ----------------
+    @RequiresApi(Build.VERSION_CODES.O)
     fun setProductType(v: String) {
         _ui.update { it.copy(productType = v) }
         reFilter()
     }
 
+    @RequiresApi(Build.VERSION_CODES.O)
     fun setStatus(v: String) {
         _ui.update { it.copy(status = v) }
         reFilter()
     }
 
+    @RequiresApi(Build.VERSION_CODES.O)
     fun setUpdatedAfter(v: String) {
         _ui.update { it.copy(updatedAfter = v) }
         reFilter()
     }
 
+    @RequiresApi(Build.VERSION_CODES.O)
     fun setUpdatedBefore(v: String) {
         _ui.update { it.copy(updatedBefore = v) }
         reFilter()
@@ -88,7 +93,7 @@ class FilterViewModel(
         }
     }
 
-    // ---------------- helpers ----------------
+    @RequiresApi(Build.VERSION_CODES.O)
     private fun reFilter() {
         _ui.update { st ->
             val filteredNow = applyPredicate(
@@ -110,6 +115,7 @@ class FilterViewModel(
         }
     }
 
+    @RequiresApi(Build.VERSION_CODES.O)
     private fun applyPredicate(
         source: List<VendingMachine>,
         productType: String,
@@ -120,14 +126,19 @@ class FilterViewModel(
         val (afterMillis, beforeMillis) = parseDateBounds(updatedAfter, updatedBefore)
 
         return source.filter { m ->
-            if (productType.isNotBlank() && !m.productType.equals(productType, ignoreCase = true))
-                return@filter false
-            if (status.isNotBlank() && !m.status.equals(status, ignoreCase = true))
-                return@filter false
+            if (productType.isNotBlank() &&
+                !m.productType.equals(productType, ignoreCase = true)
+            ) return@filter false
+
+            if (status.isNotBlank() &&
+                !m.status.equals(status, ignoreCase = true)
+            ) return@filter false
 
             val updatedAt = m.updatedAt ?: m.createdAt // fallback if needed
+
             if (afterMillis != null && (updatedAt == null || updatedAt < afterMillis))
                 return@filter false
+
             if (beforeMillis != null && (updatedAt == null || updatedAt > beforeMillis))
                 return@filter false
 
@@ -147,26 +158,32 @@ class FilterViewModel(
                 updatedBefore.isNotBlank()
     }
 
-    /**
-     * Parses yyyy-MM-dd strings into [startOfDayMillis, endOfDayMillis].
-     * Returns Pair(null, null) if both are blank or invalid.
-     */
-    private fun parseDateBounds(
-        after: String,
-        before: String
-    ): Pair<Long?, Long?> {
+    @RequiresApi(Build.VERSION_CODES.O)
+    private fun parseDateBounds(after: String, before: String): Pair<Long?, Long?> {
         val zone = ZoneId.systemDefault()
         val fmt = DateTimeFormatter.ISO_LOCAL_DATE
 
-        val afterMs = after.takeIf { it.isNotBlank() }?.runCatching {
-            LocalDate.parse(this, fmt).atStartOfDay(zone).toInstant().toEpochMilli()
-        }?.getOrNull()
+        val afterMs = after
+            .takeIf { it.isNotBlank() }
+            ?.runCatching {
+                LocalDate.parse(this, fmt)
+                    .atStartOfDay(zone)
+                    .toInstant()
+                    .toEpochMilli()
+            }
+            ?.getOrNull()
 
-        val beforeMs = before.takeIf { it.isNotBlank() }?.runCatching {
-            // end of given day (23:59:59.999)
-            LocalDate.parse(this, fmt).plusDays(1)
-                .atStartOfDay(zone).toInstant().toEpochMilli() - 1
-        }?.getOrNull()
+        val beforeMs = before
+            .takeIf { it.isNotBlank() }
+            ?.runCatching {
+                // end of given day (23:59:59.999)
+                LocalDate.parse(this, fmt)
+                    .plusDays(1)
+                    .atStartOfDay(zone)
+                    .toInstant()
+                    .toEpochMilli() - 1
+            }
+            ?.getOrNull()
 
         return afterMs to beforeMs
     }

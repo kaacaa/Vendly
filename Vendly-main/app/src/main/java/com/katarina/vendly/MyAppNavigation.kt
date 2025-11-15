@@ -1,5 +1,7 @@
 package com.katarina.vendly
 
+import android.os.Build
+import androidx.annotation.RequiresApi
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.*
@@ -27,21 +29,22 @@ import com.katarina.vendly.ui.pages.profile.ProfileScreen
 import com.katarina.vendly.ui.pages.signup.SignupScreen
 import com.katarina.vendly.ui.pages.vendingdetails.VendingDetailsScreen
 
+@RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun MyAppNavigation(
     modifier: Modifier = Modifier,
     authViewModel: AuthViewModel,
-    startVendingId: String? = null // passed from MainActivity (notification)
+    startVendingId: String? = null //prosledjujemo iz mainactivity
 ) {
+    //trenutne destinacije
     val navController = rememberNavController()
     val backStack by navController.currentBackStackEntryAsState()
     val currentDest = backStack?.destination
     val currentRoute = currentDest?.route.orEmpty()
 
-    // Top-level tabs (for bottom bar)
+    //dole u navigacioni bar sta sve ima
     val topLevelRoutes = listOf("home", "map", "leaderboard", "profile")
 
-    // Observe auth state to decide start destination and handle redirects
     val authState by authViewModel.authState.observeAsState(initial = AuthState.Loading)
 
     // Consume notification deep-link exactly once

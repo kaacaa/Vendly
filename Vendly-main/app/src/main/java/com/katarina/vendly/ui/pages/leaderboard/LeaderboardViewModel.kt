@@ -27,10 +27,12 @@ class LeaderboardViewModel(
                 if (meUid.isNullOrBlank()) flowOf(null)
                 else userRepo.observeMyRank(meUid).map { it }
 
+            //reaguje na promene u poenima
             combine(top10Flow, myRankFlow) { top10, myRankPair ->
                 val meRank = myRankPair?.first
                 val meUser = myRankPair?.second
 
+                //ako je u top 10 ne treba ispod da se prikazuje rang
                 val isMeInTop = meUser?.uid?.let { uid -> top10.any { it.uid == uid } } ?: false
                 val meOutsideTop = if (!isMeInTop && meUser != null) meUser else null
 

@@ -20,7 +20,7 @@ import androidx.compose.ui.unit.dp
 @Composable
 fun BottomBar(
     currentRoute: String?,
-    onHome: () -> Unit,          // ← new
+    onHome: () -> Unit,
     onMap: () -> Unit,
     onLeaderboard: () -> Unit,
     onProfile: () -> Unit,

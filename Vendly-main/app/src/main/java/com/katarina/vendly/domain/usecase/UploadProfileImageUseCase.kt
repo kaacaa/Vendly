@@ -22,12 +22,13 @@ class UploadProfileImageUseCase {
 
     private val client = OkHttpClient()
 
+    //uzima uri slike, optimizuje je, salje na cloudinary, vrati url slike
     suspend operator fun invoke(context: Context, photoUri: Uri): Result<String> =
-        withContext(Dispatchers.IO) {
+        withContext(Dispatchers.IO) {   //sve sto se radi salje se na dispecher
             try {
                 val maxSide = 1600
 
-                // --- Decode safely ---
+                //citamo dimenzije slike i ako je ogromna smanji je
                 val bmp: Bitmap = if (Build.VERSION.SDK_INT >= 28) {
                     val src = ImageDecoder.createSource(context.contentResolver, photoUri)
                     ImageDecoder.decodeBitmap(src) { decoder, info, _ ->
@@ -39,12 +40,13 @@ class UploadProfileImageUseCase {
                         }
                     }
                 } else {
+                    //samo pravi bitmapu i ako slika ne moze da se ucita vrati gresku
                     val stream: InputStream? = context.contentResolver.openInputStream(photoUri)
                     stream.use { BitmapFactory.decodeStream(it) }
                         ?: return@withContext Result.failure(IllegalStateException("Can't decode selected image"))
                 }
 
-                // For <28 we might still be huge; one more guard resize
+                //dodatni resize za starije sisteme
                 val finalBmp = if (Build.VERSION.SDK_INT < 28) {
                     val side = max(bmp.width, bmp.height)
                     if (side > maxSide) {
@@ -58,16 +60,17 @@ class UploadProfileImageUseCase {
                     } else bmp
                 } else bmp
 
-                // --- JPEG compress ---
+                // kompresija u jpeg
                 val baos = ByteArrayOutputStream()
                 finalBmp.compress(Bitmap.CompressFormat.JPEG, 85, baos)
                 val data = baos.toByteArray()
 
-                // --- Cloudinary upload ---
-                val cloudName = "dhvclg8nu"          // must match your dashboard cloud name
-                val uploadPreset = "vendly_unsigned"  // <- use the exact unsigned preset name you created
+                //stavljamo na cloudinary
+                val cloudName = "dhvclg8nu"
+                val uploadPreset = "vendly_unsigned"
                 val url = "https://api.cloudinary.com/v1_1/$cloudName/image/upload"
 
+                //pakuje sliku i podatke u jednu kutiju multipart/form-data
                 val body = MultipartBody.Builder()
                     .setType(MultipartBody.FORM)
                     .addFormDataPart(
@@ -75,11 +78,12 @@ class UploadProfileImageUseCase {
                         data.toRequestBody("image/jpeg".toMediaTypeOrNull())
                     )
                     .addFormDataPart("upload_preset", uploadPreset)
-                    // .addFormDataPart("folder", "vendly") // optional
                     .build()
 
+                //salje http post request
                 val request = Request.Builder().url(url).post(body).build()
                 client.newCall(request).execute().use { resp ->
+                    //provera da li je zahtev uspeo ili ne
                     if (!resp.isSuccessful) {
                         val errBody = resp.body?.string()
                         val msg = runCatching {

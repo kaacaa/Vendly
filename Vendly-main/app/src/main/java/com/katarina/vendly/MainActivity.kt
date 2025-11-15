@@ -21,12 +21,13 @@ import com.katarina.vendly.ui.theme.VendlyTheme
 import com.katarina.vendly.ui.theme.AppSystemBars
 
 class MainActivity : ComponentActivity() {
+    //ako smo kliknuli na notifikaciju preko id dobijamo detalje
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
 
         val authViewModel: AuthViewModel by viewModels()
-        val vendingIdFromNotif = intent.getStringExtra("vending_id") // 👈 read it here
+        val vendingIdFromNotif = intent.getStringExtra("vending_id")
 
         setContent {
             VendlyTheme {
@@ -36,7 +37,7 @@ class MainActivity : ComponentActivity() {
                         MyAppNavigation(
                             modifier = Modifier.padding(innerPadding),
                             authViewModel = authViewModel,
-                            startVendingId = vendingIdFromNotif // 👈 pass it
+                            startVendingId = vendingIdFromNotif
                         )
                     }
                 }

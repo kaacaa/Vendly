@@ -18,8 +18,6 @@ import kotlinx.coroutines.tasks.await
 class UserRepository(
     private val db: FirebaseFirestore = FirebaseFirestore.getInstance()
 ) {
-    // ---- Location ----
-
     suspend fun updateUserLocation(uid: String, latitude: Double, longitude: Double) {
         val userRef = db.collection("users").document(uid)
         val payload = mapOf(
@@ -30,7 +28,7 @@ class UserRepository(
         )
         try {
             userRef.set(payload, SetOptions.merge()).await()
-        } catch (_: Exception) { /* ignore */ }
+        } catch (_: Exception) { }
     }
 
     suspend fun clearUserLocation(uid: String) {
@@ -42,13 +40,9 @@ class UserRepository(
         )
         try {
             userRef.set(payload, SetOptions.merge()).await()
-        } catch (_: Exception) { /* ignore */ }
+        } catch (_: Exception) { }
     }
 
-    /**
-     * Streams all users that have coordinates (for proximity checks).
-     * Emits List of (uid, displayName, LatLng).
-     */
     fun observeUsers(onUsersUpdate: (List<Triple<String, String, LatLng>>) -> Unit) {
         db.collection("users")
             .addSnapshotListener { snapshot, error ->
@@ -67,13 +61,9 @@ class UserRepository(
             }
     }
 
-    // ---- Profile / single user ----
-
-    /** Read a number safely as Long from this doc. */
     private fun DocumentSnapshot.num(field: String): Long =
         when (val v = get(field)) { is Number -> v.toLong() else -> 0L }
 
-    /** Read a stat from the nested "stats" map, with legacy fallbacks. */
     private fun DocumentSnapshot.statLong(vararg keys: String): Long {
         val stats = get("stats") as? Map<*, *> ?: emptyMap<String, Any?>()
         for (k in keys) {
@@ -84,9 +74,6 @@ class UserRepository(
         return 0L
     }
 
-    /**
-     * Robust mapper that tolerates missing/typed fields and always produces sane defaults.
-     */
     private fun DocumentSnapshot.toSafeUser(): User {
         val uid = getString("uid") ?: id
         val email = getString("email") ?: ""
@@ -96,7 +83,6 @@ class UserRepository(
 
         val points = num("points")
 
-        // Fallback to legacy keys if new ones don't exist yet
         val stats = UserStats(
             vendingMachinesAdded = statLong("vendingMachinesAdded", "vendingCreated").toInt(),
             statusUpdatesCount  = statLong("statusUpdatesCount", "statusUpdates").toInt()
@@ -150,15 +136,12 @@ class UserRepository(
         }
     }
 
-    // ---- Points & counters ----
-
     suspend fun awardPointsForNewVendingMachine(
         uid: String,
         points: Long = Points.PER_VENDING_MACHINE
     ) = incrementUserCounters(
         uid = uid,
         pointsDelta = points,
-        // canonical (matches UI)
         counters = mapOf("stats.vendingMachinesAdded" to 1L)
     )
 
@@ -168,13 +151,9 @@ class UserRepository(
     ) = incrementUserCounters(
         uid = uid,
         pointsDelta = points,
-        // canonical (matches UI)
         counters = mapOf("stats.statusUpdatesCount" to 1L)
     )
 
-    /**
-     * Transaction: read → migrate legacy → apply deltas → write canonical → delete legacy.
-     */
     private suspend fun incrementUserCounters(
         uid: String,
         pointsDelta: Long,
@@ -185,7 +164,10 @@ class UserRepository(
         db.runTransaction { tx ->
             val snap = tx.get(userRef)
 
-            val currentPoints = when (val p = snap.get("points")) { is Number -> p.toLong() else -> 0L }
+            val currentPoints = when (val p = snap.get("points")) {
+                is Number -> p.toLong()
+                else -> 0L
+            }
 
             val stats = (snap.get("stats") as? Map<*, *>) ?: emptyMap<String, Any?>()
 
@@ -201,11 +183,10 @@ class UserRepository(
             var vending = stat("vendingMachinesAdded", "vendingCreated")
             var updates = stat("statusUpdatesCount", "statusUpdates")
 
-            // apply requested deltas (canonical keys only)
             counters.forEach { (k, v) ->
                 when (k) {
                     "stats.vendingMachinesAdded" -> vending += v
-                    "stats.statusUpdatesCount"   -> updates += v
+                    "stats.statusUpdatesCount" -> updates += v
                 }
             }
 
@@ -227,8 +208,6 @@ class UserRepository(
             null
         }.await()
     }
-
-    // ---- Leaderboard ----
 
     private fun mapDocToLeaderboardUser(d: DocumentSnapshot): LeaderboardUser {
         val uid = d.getString("uid") ?: d.id
@@ -299,8 +278,6 @@ class UserRepository(
             aboveReg?.remove()
         }
     }
-
-    // ---- Lightweight directory ----
 
     suspend fun getUsersLite(limit: Long = 1000): List<UserLite> {
         return try {

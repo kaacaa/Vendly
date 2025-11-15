@@ -1,7 +1,8 @@
 package com.katarina.vendly.ui.pages.map
 
 import android.location.Location
-import androidx.compose.foundation.background
+import android.os.Build
+import androidx.annotation.RequiresApi
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -30,7 +31,6 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import com.google.android.gms.maps.CameraUpdateFactory
-import com.google.android.gms.maps.GoogleMap as GmsMap
 import com.google.android.gms.maps.model.BitmapDescriptorFactory
 import com.google.android.gms.maps.model.CameraPosition
 import com.google.android.gms.maps.model.LatLng
@@ -38,9 +38,10 @@ import com.google.maps.android.compose.*
 import com.katarina.vendly.domain.model.vm.VendingStatus
 import com.katarina.vendly.ui.filters.FilterDialog
 import com.katarina.vendly.ui.filters.FilterViewModel
-import kotlinx.coroutines.launch
 import kotlin.math.roundToInt
+import com.google.android.gms.maps.GoogleMap as GmsMap
 
+@RequiresApi(Build.VERSION_CODES.O)
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MapScreen(
@@ -62,28 +63,35 @@ fun MapScreen(
     val filtersVm: FilterViewModel = viewModel()
     val fUi by filtersVm.ui.collectAsState()
     var showFilter by rememberSaveable { mutableStateOf(false) }
-    val scope = rememberCoroutineScope()
     var showList by rememberSaveable { mutableStateOf(false) }
 
     var showRadiusDialog by rememberSaveable { mutableStateOf(false) }
     var radiusMeters by rememberSaveable { mutableIntStateOf(0) }
 
-    // ✅ pass required parameter
-    LaunchedEffect(Unit) { filtersVm.loadAll(updatedAfter = 0L) }
+    LaunchedEffect(Unit) { filtersVm.loadAll() }
 
     LaunchedEffect(userLatLng, followMe) {
         if (userLatLng != null && followMe) {
             if (cameraPositionState.position.zoom == 0f) {
-                cameraPositionState.position = CameraPosition.fromLatLngZoom(userLatLng, 15f)
+                cameraPositionState.position =
+                    CameraPosition.fromLatLngZoom(userLatLng, 15f)
             } else {
-                cameraPositionState.animate(CameraUpdateFactory.newLatLngZoom(userLatLng, 15f))
+                cameraPositionState.animate(
+                    CameraUpdateFactory.newLatLngZoom(userLatLng, 15f)
+                )
             }
         }
     }
 
     fun distanceMeters(from: LatLng, to: LatLng): Int {
         val out = FloatArray(1)
-        Location.distanceBetween(from.latitude, from.longitude, to.latitude, to.longitude, out)
+        Location.distanceBetween(
+            from.latitude,
+            from.longitude,
+            to.latitude,
+            to.longitude,
+            out
+        )
         return out[0].roundToInt()
     }
 
@@ -92,12 +100,16 @@ fun MapScreen(
     val visibleList = remember(baseList, radiusMeters, userLatLng) {
         if (radiusMeters <= 0 || userLatLng == null) baseList
         else baseList.filter {
-            distanceMeters(userLatLng, LatLng(it.latitude, it.longitude)) <= radiusMeters
+            distanceMeters(
+                userLatLng,
+                LatLng(it.latitude, it.longitude)
+            ) <= radiusMeters
         }
     }
 
     fun radiusText(m: Int): String =
-        if (m <= 0) "Radius" else "≤ " + if (m >= 1000) "${m / 1000} km" else "$m m"
+        if (m <= 0) "Radius"
+        else "≤ " + if (m >= 1000) "${m / 1000} km" else "$m m"
 
     Box(Modifier.fillMaxSize()) {
 
@@ -123,7 +135,9 @@ fun MapScreen(
                 Marker(
                     state = MarkerState(position = it),
                     title = "You are here",
-                    icon = BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_AZURE)
+                    icon = BitmapDescriptorFactory.defaultMarker(
+                        BitmapDescriptorFactory.HUE_AZURE
+                    )
                 )
                 if (radiusMeters > 0) {
                     Circle(
@@ -138,7 +152,12 @@ fun MapScreen(
 
             visibleList.forEach { vending ->
                 Marker(
-                    state = MarkerState(LatLng(vending.latitude, vending.longitude)),
+                    state = MarkerState(
+                        LatLng(
+                            vending.latitude,
+                            vending.longitude
+                        )
+                    ),
                     title = vending.name,
                     snippet = vending.productType,
                     onClick = {
@@ -156,19 +175,34 @@ fun MapScreen(
             horizontalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             FilledTonalButton(
-                onClick = { if (fUi.filterActive) filtersVm.clear() else showFilter = true }
+                onClick = {
+                    if (fUi.filterActive) filtersVm.clear()
+                    else showFilter = true
+                }
             ) {
-                Icon(Icons.Outlined.FilterList, contentDescription = null, modifier = Modifier.padding(end = 6.dp))
+                Icon(
+                    Icons.Outlined.FilterList,
+                    contentDescription = null,
+                    modifier = Modifier.padding(end = 6.dp)
+                )
                 Text(if (fUi.filterActive) "Clear" else "Filter")
             }
 
             FilledTonalButton(onClick = { showRadiusDialog = true }) {
-                Icon(Icons.Outlined.MyLocation, contentDescription = null, modifier = Modifier.padding(end = 6.dp))
+                Icon(
+                    Icons.Outlined.MyLocation,
+                    contentDescription = null,
+                    modifier = Modifier.padding(end = 6.dp)
+                )
                 Text(radiusText(radiusMeters))
             }
 
             FilledTonalButton(onClick = { showList = !showList }) {
-                Icon(Icons.Outlined.TableChart, contentDescription = null, modifier = Modifier.padding(end = 6.dp))
+                Icon(
+                    Icons.Outlined.TableChart,
+                    contentDescription = null,
+                    modifier = Modifier.padding(end = 6.dp)
+                )
                 Text(if (showList) "Hide" else "List")
             }
         }
@@ -199,9 +233,25 @@ fun MapScreen(
                         .fillMaxWidth()
                         .padding(horizontal = 12.dp, vertical = 10.dp)
                 ) {
-                    Text("Name",  modifier = Modifier.weight(0.5f), fontWeight = FontWeight.SemiBold, color = Color.Black)
-                    Text("Type",  modifier = Modifier.weight(0.25f), fontWeight = FontWeight.SemiBold, color = Color.Black)
-                    Text("Status", modifier = Modifier.weight(0.25f), fontWeight = FontWeight.SemiBold, textAlign = TextAlign.End, color = Color.Black)
+                    Text(
+                        "Name",
+                        modifier = Modifier.weight(0.5f),
+                        fontWeight = FontWeight.SemiBold,
+                        color = Color.Black
+                    )
+                    Text(
+                        "Type",
+                        modifier = Modifier.weight(0.25f),
+                        fontWeight = FontWeight.SemiBold,
+                        color = Color.Black
+                    )
+                    Text(
+                        "Status",
+                        modifier = Modifier.weight(0.25f),
+                        fontWeight = FontWeight.SemiBold,
+                        textAlign = TextAlign.End,
+                        color = Color.Black
+                    )
                 }
 
                 LazyColumn {
@@ -210,13 +260,30 @@ fun MapScreen(
                             Modifier
                                 .fillMaxWidth()
                                 .clickable {
-                                    navController.navigate("vendingDetails/${v.id}") { launchSingleTop = true }
+                                    navController.navigate("vendingDetails/${v.id}") {
+                                        launchSingleTop = true
+                                    }
                                 }
                                 .padding(horizontal = 12.dp, vertical = 10.dp)
                         ) {
-                            Text(v.name, modifier = Modifier.weight(0.5f), maxLines = 1, overflow = TextOverflow.Ellipsis, color = Color.Black)
-                            Text(v.productType, modifier = Modifier.weight(0.25f), color = Color.Black)
-                            Text(VendingStatus.fromCode(v.status).label, modifier = Modifier.weight(0.25f), textAlign = TextAlign.End, color = Color.Black)
+                            Text(
+                                v.name,
+                                modifier = Modifier.weight(0.5f),
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis,
+                                color = Color.Black
+                            )
+                            Text(
+                                v.productType,
+                                modifier = Modifier.weight(0.25f),
+                                color = Color.Black
+                            )
+                            Text(
+                                VendingStatus.fromCode(v.status).label,
+                                modifier = Modifier.weight(0.25f),
+                                textAlign = TextAlign.End,
+                                color = Color.Black
+                            )
                         }
                         Divider()
                     }
@@ -246,13 +313,18 @@ fun MapScreen(
                             .clip(RoundedCornerShape(12.dp))
                     )
                     Spacer(Modifier.height(8.dp))
-                    Text(selectedVending.name, style = MaterialTheme.typography.titleLarge)
+                    Text(
+                        selectedVending.name,
+                        style = MaterialTheme.typography.titleLarge
+                    )
                     Text(selectedVending.productType, color = Color.Gray)
                     Text("Status: ${VendingStatus.fromCode(selectedVending.status).label}")
                     Spacer(Modifier.height(16.dp))
                     Button(
                         onClick = {
-                            navController.navigate("vendingDetails/${selectedVending.id}") { launchSingleTop = true }
+                            navController.navigate("vendingDetails/${selectedVending.id}") {
+                                launchSingleTop = true
+                            }
                             mapViewModel.onVendingMarkerClicked(null)
                         },
                         modifier = Modifier.fillMaxWidth()
@@ -265,23 +337,26 @@ fun MapScreen(
             FilterDialog(
                 productType = fUi.productType,
                 status = fUi.status,
+                updatedAfter = fUi.updatedAfter,
+                updatedBefore = fUi.updatedBefore,
                 onProductTypeChange = filtersVm::setProductType,
                 onStatusChange = filtersVm::setStatus,
+                onUpdatedAfterChange = filtersVm::setUpdatedAfter,
+                onUpdatedBeforeChange = filtersVm::setUpdatedBefore,
                 isFiltering = fUi.isFiltering,
                 onClear = {
                     filtersVm.clear()
                     showFilter = false
                 },
                 onApply = {
-                    // ✅ pass required parameter
-                    filtersVm.refresh(updatedAfter = 0L)
+                    filtersVm.refresh()
                     showFilter = false
                 },
                 onDismiss = { showFilter = false }
             )
         }
 
-        // ✅ Radius dialog — now actually rendered
+        // Radius dialog
         if (showRadiusDialog) {
             RadiusDialog(
                 value = radiusMeters,
@@ -291,7 +366,10 @@ fun MapScreen(
         }
 
         if (userLatLng == null || !mapLoaded) {
-            Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+            Box(
+                Modifier.fillMaxSize(),
+                contentAlignment = Alignment.Center
+            ) {
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
                     CircularProgressIndicator()
                     Spacer(Modifier.height(12.dp))
@@ -302,7 +380,6 @@ fun MapScreen(
     }
 }
 
-/** Small helper for the radius picker */
 @Composable
 private fun RadiusDialog(
     value: Int,
@@ -314,24 +391,43 @@ private fun RadiusDialog(
         title = { Text("Show only within radius") },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                Text(if (value <= 0) "All distances" else "≤ ${if (value >= 1000) "${value/1000} km" else "$value m"}")
+                Text(
+                    if (value <= 0) "All distances"
+                    else "≤${if (value >= 1000) "${value / 1000}km" else "${value}m"}",
+                    softWrap = false,
+                    maxLines = 1,
+                    overflow = TextOverflow.Clip
+                )
                 Slider(
                     value = value.coerceIn(0, 3000).toFloat(),
                     onValueChange = { onChange(it.toInt()) },
                     valueRange = 0f..3000f,
-                    steps = 5 // stops at 0,500,1000,1500,2000,2500,3000
+                    steps = 5 // 0, 500, 1000, 1500, 2000, 2500, 3000
                 )
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     listOf(0, 250, 500, 1000, 2000).forEach { preset ->
                         AssistChip(
                             onClick = { onChange(preset) },
-                            label = { Text(if (preset == 0) "All" else if (preset >= 1000) "${preset/1000} km" else "${preset} m") }
+                            label = {
+                                Text(
+                                    if (preset == 0) "All"
+                                    else if (preset >= 1000) "${preset / 1000}km"
+                                    else "${preset}m",
+                                    softWrap = false,
+                                    maxLines = 1,
+                                    overflow = TextOverflow.Clip
+                                )
+                            }
                         )
                     }
                 }
             }
         },
-        confirmButton = { TextButton(onClick = onDismiss) { Text("Done") } },
-        dismissButton = { TextButton(onClick = { onChange(0); onDismiss() }) { Text("Clear") } }
+        confirmButton = {
+            TextButton(onClick = onDismiss) { Text("Done") }
+        },
+        dismissButton = {
+            TextButton(onClick = { onChange(0); onDismiss() }) { Text("Clear") }
+        }
     )
 }

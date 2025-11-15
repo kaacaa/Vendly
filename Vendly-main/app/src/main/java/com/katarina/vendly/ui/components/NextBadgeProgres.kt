@@ -11,6 +11,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.katarina.vendly.domain.gamification.Badge
 
+//pokazuje progres bar, ono na profilu sto ima za znacku
+
 @Composable
 fun NextBadgeProgress(points: Long, modifier: Modifier = Modifier) {
     val current = Badge.fromPoints(points)
@@ -23,9 +25,10 @@ fun NextBadgeProgress(points: Long, modifier: Modifier = Modifier) {
 
     val start = current.minPoints
     val end = nextTarget
-    val progress = ((points - start).toFloat() / (end - start).toFloat())
-        .coerceIn(0f, 1f)
+    val progress = ((points - start).toFloat() / (end - start).toFloat())  //procenat naprretka
+        .coerceIn(0f, 1f) //osigurava da progres bar ne predje granice 0-100%
 
+    //prikaz progres bara i teksta
     Column(modifier) {
         LinearProgressIndicator(
             progress = { progress }

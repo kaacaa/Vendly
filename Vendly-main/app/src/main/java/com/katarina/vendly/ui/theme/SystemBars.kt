@@ -29,10 +29,6 @@ fun SetSystemBarsColor(
     }
 }
 
-/**
- * Automatically applies Vendly's system bar color.
- * Chooses icon color (light/dark) based on background luminance.
- */
 @Composable
 fun AppSystemBars() {
     val barColor = MaterialTheme.colorScheme.surfaceVariant

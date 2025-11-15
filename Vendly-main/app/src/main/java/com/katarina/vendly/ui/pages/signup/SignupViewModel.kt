@@ -34,14 +34,12 @@ class SignupViewModel(
     private val _events = Channel<SignupEvent>(capacity = Channel.BUFFERED)
     val events = _events.receiveAsFlow()
 
-    // ---- Updaters ----
     fun onEmailChanged(v: String) { uiState = uiState.copy(email = v) }
     fun onFullNameChanged(v: String) { uiState = uiState.copy(fullName = v) }
     fun onPhoneChanged(v: String) { uiState = uiState.copy(phoneNumber = v) }
     fun onPasswordChanged(v: String) { uiState = uiState.copy(password = v) }
     fun onPhotoPicked(uri: Uri?) { uiState = uiState.copy(photoUri = uri) }
 
-    // ---- Actions ----
     fun signup(authViewModel: AuthViewModel) {
         val s = uiState
         uiState = uiState.copy(isLoading = true, errorMessage = null)
@@ -75,7 +73,6 @@ class SignupViewModel(
                     return@launch
                 }
 
-                // Upload photo if present, unwrap Result<String>
                 val url: String? = uiState.photoUri?.let { uri ->
                     val result = uploadProfileImageUseCase(context, uri)
                     result.getOrElse { t ->

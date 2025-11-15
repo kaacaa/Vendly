@@ -95,7 +95,6 @@ fun ProfileScreen(
                 .padding(horizontal = 20.dp, vertical = 8.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            // --- Avatar: rounded-square style ---
             if (!ui.profileImageUrl.isNullOrBlank()) {
                 Image(
                     painter = rememberAsyncImagePainter(ui.profileImageUrl),
@@ -139,7 +138,6 @@ fun ProfileScreen(
             )
             Text("@$username", color = MaterialTheme.colorScheme.onSurfaceVariant)
 
-            // --- Points + Next Badge: compact summary block ---
             Spacer(Modifier.height(20.dp))
             Box(
                 modifier = Modifier
@@ -156,7 +154,6 @@ fun ProfileScreen(
                 }
             }
 
-            // --- Stats grid: card blocks ---
             Spacer(Modifier.height(20.dp))
             Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
                 Row(
@@ -186,7 +183,6 @@ fun ProfileScreen(
                 }
             }
 
-            // --- Info ---
             Spacer(Modifier.height(24.dp))
             InfoRow("Email", ui.email)
             if (ui.phoneNumber.isNotBlank()) {
@@ -194,7 +190,6 @@ fun ProfileScreen(
                 InfoRow("Phone", ui.phoneNumber)
             }
 
-            // --- Logout ---
             Spacer(Modifier.height(32.dp))
             Button(
                 onClick = { authViewModel.signout() },
@@ -223,9 +218,7 @@ private fun InfoRow(title: String, value: String) {
     }
 }
 
-/**
- * New minimal “card” stat item replacing StatCard for a cleaner look.
- */
+
 @Composable
 private fun StatItem(
     label: String,

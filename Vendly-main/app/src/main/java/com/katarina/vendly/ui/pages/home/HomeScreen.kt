@@ -33,7 +33,6 @@ import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.*
 
-/* ============================= UI ============================= */
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -101,8 +100,6 @@ fun HomeScreen(
                 }
 
                 ui.error != null -> {
-                    // Show the error and a retry. If rules/App Check are the cause,
-                    // the message helps you diagnose from UI instead of a silent failure.
                     Column(
                         modifier = Modifier
                             .fillMaxSize()
@@ -153,7 +150,6 @@ fun HomeScreen(
                             VendingRow(
                                 item = v,
                                 onClick = {
-                                    // 🔧 FIXED: route must match your NavHost "vendingDetails/{vendingId}"
                                     navController.navigate("vendingDetails/${v.id}")
                                 }
                             )
