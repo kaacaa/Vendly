@@ -134,7 +134,7 @@ class FilterViewModel(
                 !m.status.equals(status, ignoreCase = true)
             ) return@filter false
 
-            val updatedAt = m.updatedAt ?: m.createdAt // fallback if needed
+            val updatedAt = m.updatedAt ?: m.createdAt
 
             if (afterMillis != null && (updatedAt == null || updatedAt < afterMillis))
                 return@filter false

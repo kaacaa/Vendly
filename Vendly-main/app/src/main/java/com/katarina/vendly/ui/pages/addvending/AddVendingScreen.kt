@@ -153,7 +153,6 @@ fun AddVendingScreen(
                 )
             }
 
-            // 🔽 Radio group for status (canonical codes; pretty labels)
             item {
                 StatusRadioGroup(
                     selectedCode = ui.status.ifBlank { VendingStatus.FULL.code },

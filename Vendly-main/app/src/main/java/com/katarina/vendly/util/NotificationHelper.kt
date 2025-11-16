@@ -22,6 +22,8 @@ class NotificationHelper(private val context: Context) {
 
     init { createNotificationChannel() }
 
+    //proveravamo verziju androida, pa kreiramo kanal sa id, imenom i vaznostima
+    //manager koji kreira kanal
     private fun createNotificationChannel() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             val channel = NotificationChannel(
@@ -34,6 +36,8 @@ class NotificationHelper(private val context: Context) {
         }
     }
 
+    //pravimo jednostavnu notifikaciju, biramo ikonicu, tekst,naslov,prioritet
+    //za prioritet gde ce da se nadje u listi na telefonu
     @SuppressLint("MissingPermission")
     fun showSimpleNotification(
         title: String,
@@ -52,6 +56,7 @@ class NotificationHelper(private val context: Context) {
         }
     }
 
+    //otvara aplikaciju i vodi na odredjeni automat
     @SuppressLint("MissingPermission")
     fun showVendingNotification(
         vendingId: String,
@@ -59,11 +64,14 @@ class NotificationHelper(private val context: Context) {
         message: String,
         notificationId: Int = vendingId.hashCode()
     ) {
+        //otvara mainactivity, brise sve prethodne aktivnosti, prosledjuje id automata
         val intent = Intent(context, MainActivity::class.java).apply {
             flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
             putExtra("vending_id", vendingId)
         }
 
+        //dozvola da sistem pokrene intent kada korisnik klikne na notifikaciju
+        //ovaj flag kaze ako vec postoji samo ga azuriraj
         val pendingIntent = PendingIntent.getActivity(
             context,
             vendingId.hashCode(),
@@ -71,6 +79,7 @@ class NotificationHelper(private val context: Context) {
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         )
 
+        //ima klik, otvara odredjeni automat, klikom se zatvara
         val builder = NotificationCompat.Builder(context, CHANNEL_ID)
             .setSmallIcon(safeSmallIcon())
             .setContentTitle(title)
@@ -79,6 +88,7 @@ class NotificationHelper(private val context: Context) {
             .setContentIntent(pendingIntent)
             .setAutoCancel(true)
 
+        //svaki automat ima edinstvenu notifikaciju, ako je vec ima ona se samo azurira
         with(NotificationManagerCompat.from(context)) {
             notify(notificationId, builder.build())
         }

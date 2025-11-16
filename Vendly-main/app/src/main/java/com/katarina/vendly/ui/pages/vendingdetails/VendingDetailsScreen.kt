@@ -49,7 +49,6 @@ fun VendingDetailsScreen(
 
         Text("Vending details", style = MaterialTheme.typography.titleLarge)
 
-        // IMAGE (read-only)
         AsyncImage(
             model = vending?.imageUrl,
             contentDescription = vending?.name ?: "Vending photo",
@@ -60,12 +59,10 @@ fun VendingDetailsScreen(
                 .clip(RoundedCornerShape(12.dp))
         )
 
-        // READ-ONLY INFO
         Text(vending?.name ?: "", style = MaterialTheme.typography.titleMedium)
         Text(vending?.productType ?: "", color = Color.Gray)
         Text("Status: ${VendingStatus.fromCode(currentStatus).label}")
 
-        // STATUS PICKER adds **Low**
         StatusButtons(
             selected = currentStatus,
             onSelect = { currentStatus = it }
@@ -93,7 +90,6 @@ fun VendingDetailsScreen(
     }
 }
 
-/** Simple status button group with Low included */
 @Composable
 private fun StatusButtons(
     selected: String,

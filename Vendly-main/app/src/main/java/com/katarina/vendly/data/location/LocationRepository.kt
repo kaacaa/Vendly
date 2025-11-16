@@ -20,8 +20,8 @@ class LocationRepository(
 ) {
 
     private fun hasLocationPermission(): Boolean {
-        val fine = ContextCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION)
-        val coarse = ContextCompat.checkSelfPermission(context, Manifest.permission.ACCESS_COARSE_LOCATION)
+        val fine = ContextCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION) //precizna
+        val coarse = ContextCompat.checkSelfPermission(context, Manifest.permission.ACCESS_COARSE_LOCATION) //gruba
         return fine == PackageManager.PERMISSION_GRANTED || coarse == PackageManager.PERMISSION_GRANTED
     }
 
@@ -33,7 +33,7 @@ class LocationRepository(
         }
 
         val request = LocationRequest.Builder(
-            com.google.android.gms.location.Priority.PRIORITY_HIGH_ACCURACY,
+            com.google.android.gms.location.Priority.PRIORITY_HIGH_ACCURACY, //zelimo da bude sto tacnije
             interval
         )
             .setMinUpdateIntervalMillis(interval / 2)
