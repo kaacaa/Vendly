@@ -139,7 +139,7 @@ fun SignupScreen(
         Spacer(modifier = Modifier.height(16.dp))
 
         Button(
-            onClick = { signupViewModel.signup(authViewModel) },
+            onClick = { signupViewModel.signup(authViewModel, context) },
             enabled = !uiState.isLoading
         ) {
             if (uiState.isLoading) {

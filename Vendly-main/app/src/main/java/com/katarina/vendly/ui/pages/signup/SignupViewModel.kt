@@ -40,16 +40,32 @@ class SignupViewModel(
     fun onPasswordChanged(v: String) { uiState = uiState.copy(password = v) }
     fun onPhotoPicked(uri: Uri?) { uiState = uiState.copy(photoUri = uri) }
 
-    fun signup(authViewModel: AuthViewModel) {
+    fun signup(authViewModel: AuthViewModel, context: Context) {
         val s = uiState
         uiState = uiState.copy(isLoading = true, errorMessage = null)
-        authViewModel.signup(
-            s.email.trim(),
-            s.password.trim(),
-            s.fullName.trim(),
-            s.phoneNumber.trim(),
-            null
-        )
+
+        viewModelScope.launch {
+            // postavi sliku na cloudinary ako postoji
+            val profileUrl: String? = s.photoUri?.let { uri ->
+                val result = uploadProfileImageUseCase(context, uri)
+                result.getOrElse { t ->
+                    _events.send(
+                        SignupEvent.ShowToast(
+                            "Photo upload failed: ${t.message ?: "unknown error"}"
+                        )
+                    )
+                    null
+                }
+            }
+
+            authViewModel.signup(
+                s.email.trim(),
+                s.password.trim(),
+                s.fullName.trim(),
+                s.phoneNumber.trim(),
+                profileUrl
+            )
+        }
     }
 
     fun setError(message: String) {
